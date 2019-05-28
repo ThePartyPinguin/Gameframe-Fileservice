@@ -2,29 +2,35 @@ package fileservice.model.entity;
 
 
 import javax.persistence.*;
-
 @Entity
-public abstract class SavedFile {
+@Table(name = "SAVED_FILES")
+public class SavedFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "FILE_ID")
     private long id;
 
-    @Column(name = "FILE_NAME")
+    @Column(name = "FILE_NAME", nullable = false)
     private String fileName;
 
-    @Column(name = "LOCAL_FILEPATH")
-    protected String localFilePath;
+    @Column(name = "DOWNLOAD_URL", nullable = false)
+    private String downloadUrl;
 
     @Column(name = "IS_PUBLIC")
     private boolean isPublic;
 
-    public SavedFile(long id, String fileName, String localFilePath, boolean isPublic) {
-        this.id = id;
+    @Column(name = "USER_ID")
+    private long userId;
+
+    @Enumerated
+    @Column(name = "FILE_TYPE", columnDefinition = "smallint")
+    private FileType fileType;
+
+    public SavedFile(String fileName, boolean isPublic, long userId, FileType fileType) {
         this.fileName = fileName;
-        this.localFilePath = localFilePath;
         this.isPublic = isPublic;
+        this.fileType = fileType;
     }
 
     public SavedFile() {
@@ -34,19 +40,36 @@ public abstract class SavedFile {
         return id;
     }
 
-    protected String getFileName() {
-        return fileName;
-    }
-
-    public String getLocalFilePath() {
-        return localFilePath;
-    }
 
     public boolean isPublic() {
         return isPublic;
     }
 
-    public abstract String createAndSetFilePath(String fileName, String localBasePath);
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
 
+    public void setDownloadUrl(String downloadUrl) {
+        this.downloadUrl = downloadUrl;
+    }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public String formatLocalStoreDirectoryPath(String localBaseDirectory, String locationSuffix){
+        return localBaseDirectory + locationSuffix + '\\' + userId + '\\';
+    }
+
+    public FileType getFileType() {
+        return fileType;
+    }
 }

@@ -1,32 +1,42 @@
 package fileservice.resource;
 
 import fileservice.model.dto.FileUploadResponse;
+import fileservice.model.entity.FileType;
 import fileservice.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nullable;
+
 @RestController
-@RequestMapping("/public")
 public class FileController {
 
-    @Autowired
-    private FileStorageService storageService;
+    private final FileStorageService storageService;
 
-    @GetMapping("/files/{filename:.+}")
-    @ResponseBody
-    public ResponseEntity<Resource> requestFile (@PathVariable String filename){
-        Resource file = this.storageService.loadAsResource(filename);
-
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
-
+    public FileController(FileStorageService storageService) {
+        this.storageService = storageService;
     }
 
-    @PostMapping
-    public FileUploadResponse uploadFile(@RequestParam("file")MultipartFile file, @RequestHeader("X-user-id") String userId){
-        return this.storageService.storeFile(file, Long.parseLong(userId));
+    @GetMapping("/download/{imageTypeOrdinal}/{requestorUserId}/{fileId}")
+    @ResponseBody
+    public ResponseEntity<Resource> requestFile (@PathVariable String imageTypeOrdinal, @PathVariable String requestorUserId, @Nullable @PathVariable String fileId){
+
+        int typeOrdinal = Integer.parseInt(imageTypeOrdinal);
+        FileType imageType = FileType.values()[typeOrdinal];
+
+        long requestorId = Long.parseLong(requestorUserId);
+        long imageIdLong = -1;
+
+        if(fileId != null)
+            imageIdLong = Long.parseLong(fileId);
+
+        Resource file = this.storageService.loadAsResource(imageType, imageIdLong, requestorId);
+
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 }
