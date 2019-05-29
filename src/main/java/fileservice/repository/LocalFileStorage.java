@@ -2,6 +2,7 @@ package fileservice.repository;
 
 import fileservice.model.entity.FileType;
 import fileservice.model.entity.SavedFile;
+import fileservice.repository.jpa.IFileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Service
@@ -19,18 +21,15 @@ public class LocalFileStorage {
     @Value("${files.store.local.path}")
     private String localStoreLocation;
 
-    private final JpaRepository<SavedFile, Long> fileRepository;
+    private final IFileRepository fileRepository;
 
-    public LocalFileStorage(JpaRepository<SavedFile, Long> fileRepository) {
+    public LocalFileStorage(IFileRepository fileRepository) {
         this.fileRepository = fileRepository;
     }
 
 
 
     public Resource loadFileAsResource(long imageId, long requestorId){
-
-        System.out.println(imageId);
-        System.out.println(requestorId);
 
         SavedFile fileToLoad = this.fileRepository.findById(imageId).orElse(null);
 
@@ -61,7 +60,16 @@ public class LocalFileStorage {
     }
 
     public SavedFile storeFile(MultipartFile file, String downloadUrl, long userId, FileType fileType){
-        System.out.println(userId);
+
+        if(fileType == FileType.PROFILE_PICTURE){
+
+            SavedFile sf = this.fileRepository.findFirstByUserIdAndFileType(userId, fileType.ordinal()).orElse(null);
+
+            if(sf != null){
+                removeFile(sf);
+            }
+        }
+
         SavedFile savedFile = new SavedFile(file.getOriginalFilename(), true, userId, fileType);
 
         byte[] fileBytes = null;
@@ -91,7 +99,6 @@ public class LocalFileStorage {
     }
 
     private boolean saveFile(String directoryLocation, String fileName, byte[] fileBytes){
-        System.out.println(directoryLocation);
         File directory = new File(directoryLocation);
 
         boolean directoriesCreated = false;
@@ -140,5 +147,19 @@ public class LocalFileStorage {
 
         return this.localStoreLocation + '\\' + fileToLoad.getFileType() + "\\" + fileToLoad.getUserId() + "\\";
 
+    }
+
+    private void removeFile(SavedFile savedFile){
+        try {
+            File f = new File(formatDirectoryPath(savedFile) + savedFile.getFileName());
+
+            if(f.exists())
+                Files.delete(new File(formatDirectoryPath(savedFile) + savedFile.getFileName()).toPath());
+
+            this.fileRepository.delete(savedFile);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

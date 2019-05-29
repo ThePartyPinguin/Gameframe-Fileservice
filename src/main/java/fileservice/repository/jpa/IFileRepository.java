@@ -1,7 +1,14 @@
 package fileservice.repository.jpa;
 
+import fileservice.model.entity.FileType;
 import fileservice.model.entity.SavedFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface IFileRepository<T extends SavedFile> extends JpaRepository<T, Long> {
+import java.util.Optional;
+
+public interface IFileRepository extends JpaRepository<SavedFile, Long> {
+
+    Optional<SavedFile> findFirstByUserIdAndFileType(long userId, int fileType);
+    boolean existsByUserIdAndFileType(long userId, int fileType);
+
 }

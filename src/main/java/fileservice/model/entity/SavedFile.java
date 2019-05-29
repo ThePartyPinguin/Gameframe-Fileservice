@@ -23,14 +23,14 @@ public class SavedFile {
     @Column(name = "USER_ID")
     private long userId;
 
-    @Enumerated
     @Column(name = "FILE_TYPE", columnDefinition = "smallint")
-    private FileType fileType;
+    private int fileType;
 
     public SavedFile(String fileName, boolean isPublic, long userId, FileType fileType) {
         this.fileName = fileName;
         this.isPublic = isPublic;
-        this.fileType = fileType;
+        this.userId = userId;
+        this.fileType = fileType.ordinal();
     }
 
     public SavedFile() {
@@ -70,6 +70,6 @@ public class SavedFile {
     }
 
     public FileType getFileType() {
-        return fileType;
+        return FileType.values()[this.fileType];
     }
 }

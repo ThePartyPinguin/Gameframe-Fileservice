@@ -40,14 +40,10 @@ public class FileStorageService {
 
     public Resource loadAsResource(FileType fileType, long imageId, long requestorUserId) {
 
-        Resource r = this.profilePictureStorage.loadFileAsResource(imageId, requestorUserId);
-
-        return r;
+        return this.profilePictureStorage.loadFileAsResource(imageId, requestorUserId);
     }
 
     public FileUploadResponse storeFile(HttpServletRequest request, MultipartFile file, long userId, FileType fileType){
-
-        System.out.println(userId);
 
         String downloadUrl = this.currentHostUrlPrefix +
                 this.currentHostUrl +

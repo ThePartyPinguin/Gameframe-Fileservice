@@ -37,6 +37,9 @@ public class FileController {
 
         Resource file = this.storageService.loadAsResource(imageType, imageIdLong, requestorId);
 
+
+        if(file == null)
+            return null;
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 }
